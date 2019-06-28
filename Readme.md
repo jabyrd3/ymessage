@@ -9,6 +9,8 @@ this has no authentication or even encryption over the wire. Only run this on a 
 - [ ] templatize configs (ports, dirs, etc)
 - [ ] bind to specific interfaces (ie: vpn only)
 - [ ] render links as anchor tags
+- [ ] add unread dots to chat list
+- [ ] os notifications
 - [ ] grabit?
 - [ ] figure out twitter attachments formatting
 - [ ] implement send behavior for group chat
