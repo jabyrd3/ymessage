@@ -6,6 +6,7 @@ import client from './client/index.mjs';
 import fs from 'fs';
 import cp from 'child_process';
 import Sender from './sender.mjs';
+import config from './config.mjs';
 
 const sender = new Sender((err, rtn) => {
   if(err){
@@ -13,7 +14,7 @@ const sender = new Sender((err, rtn) => {
   };
   console.log(`sender succeeded returning: `, rtn)
 });
-const db = sqlite('/Users/jordanbyrd/Library/Messages/chat.db');
+const db = sqlite(`${config.home}/Library/Messages/chat.db`);
 const wss = new WebSocket.Server({ port: 8080 });
 const contacts = new Contacts(false, cp);
 const allContacts = contacts.all();
@@ -100,7 +101,7 @@ wss.on('connection', function connection(ws) {
 
 const server = http.createServer((request, response) => {
   if(request.url.includes('assets')){
-    return response.end(fs.readFileSync(request.url.replace('~','/Users/jordanbyrd').split('assets/')[1]));
+    return response.end(fs.readFileSync(request.url.replace('~', config.home).split('assets/')[1]));
   }
   response.end(client(fullMessages.map(fm => Object.assign({}, fm, {
     attachments: attachments.filter(at => at.ROWID === fm.message_id)

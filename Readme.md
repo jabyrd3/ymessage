@@ -5,6 +5,18 @@ its not going to replace messages entirely, but if you use linux/windows and mis
 
 this has no authentication or even encryption over the wire. Only run this on a vpn. Actually, until i've got it binding to specific network interfaces, don't run this at all. it is dangerous as-is.
 
+# reqs
+node 12
+
+# install
+- clone this repo
+- mv config.example.mjs to config.mjs and replace with values that make sense for your env
+- cd into ymessage
+- run `npm install`, it shouldn't take long
+- run `npx serve` to serve up some basic modules. for prod, probably use a real webserver here
+- run `node --experimental-modules index.js` to stand up the server
+- go to locahost:3000 to see a (basic) representation of your messages.app chat.db. outbound messages are kind of rough, and group chat isn't fully working yet.
+
 # todo (priority order):
 - [ ] templatize configs (ports, dirs, etc)
 - [ ] bind to specific interfaces (ie: vpn only)

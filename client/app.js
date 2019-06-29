@@ -6,7 +6,7 @@ class App extends Component {
     super(props);
     this.contacts = new Contacts(initData.contacts)
     window.contacts = this.contacts;
-    const messageKeys = Object.keys(initData.messages);
+    const messageKeys = Array.from({length: initData.messages.length});
     this.state = {
       messages: initData.messages,
       messageKeys,
@@ -60,28 +60,28 @@ class App extends Component {
   }
   computeChats(messages, messageKeys){
     const chats = messageKeys.reduce((acc, m, idx)=>{
-      if(messages[m].chat_id && Object.keys(acc).includes(messages[m].chat_id.toString())) {
+      if(messages[idx].chat_id && Object.keys(acc).includes(messages[idx].chat_id.toString())) {
         return acc;
-      } else if(messages[m].text){
-        const contact = this.contacts.one(messages[m].phone);
+      } else if(messages[idx].text){
+        const contact = this.contacts.one(messages[idx].phone);
         const date = new Date('2001-1-1');
-        date.setMilliseconds(date.getMilliseconds() + messages[m].date / 1000000);
+        date.setMilliseconds(date.getMilliseconds() + messages[idx].date / 1000000);
         return Object.assign({}, acc, {
-          [messages[m].chat_id]:
+          [messages[idx].chat_id]:
             {component: 
-              h('div', {class: `chat ${this.state.activeChat && messages[m].chat_id.toString() === this.state.activeChat.toString() ? 'selected' : ''}`, onClick: () => {
+              h('div', {class: `chat ${this.state.activeChat && messages[idx].chat_id.toString() === this.state.activeChat.toString() ? 'selected' : ''}`, onClick: () => {
                   this.setState({
-                    activeChat: messages[m].chat_id
+                    activeChat: messages[idx].chat_id
                   });
                   setTimeout(() => this.setState({chats: this.computeChats(this.state.messages, this.state.messageKeys)}), 0);
                   this.scrollMessages();
                }},
                 h('div', {class: 'content-wrap'}, 
                   h('span', {class: 'users'}, contact && contact[0] ? `${contact[0].firstName || ''} ${contact[0].lastName || ''}` : 'hrm'),
-                  h('span', {class: 'text'}, messages[m].text !== '\ufffc' ? messages[m].text : 'attachment'),
-                  h('span', {class: 'hidden'}, `${messages[m].chat_id} | ${messages[m].date}`)),
+                  h('span', {class: 'text'}, messages[idx].text !== '\ufffc' ? messages[idx].text : 'attachment'),
+                  h('span', {class: 'hidden'}, `${messages[idx].chat_id} | ${messages[idx].date}`)),
                 h('div', {class: 'timestamp'}, date.toDateString())),
-            date: messages[m].date}
+            date: messages[idx].date}
         });
       } else {
         return acc;
@@ -115,6 +115,7 @@ class App extends Component {
   submit(e){
     e.preventDefault();
     const {activeChat, messages, msgText} = this.state;
+    // console.log(messages)
     this.ws.send(JSON.stringify({
       type: 'imessage',
       msg: {
@@ -127,7 +128,6 @@ class App extends Component {
     });
   }
   updateMsg(msg){
-    console.log('jab', msg, msg.target.value)
     this.setState({
       msgText: new String(msg.target.value)
     });
@@ -139,7 +139,7 @@ class App extends Component {
       .sort((a, b) => {
         return a.date <= b.date ? -1 : 1;
       })
-      .filter(m => m.chat_id == activeChat)
+      .filter(m => m && m.chat_id == activeChat)
       .map(msg => h('div', {
         class: `${msg.is_from_me === 1 ? 'ours' : 'theirs'} message`
       }, msg.attachments && msg.attachments.length > 0 ? msg.attachments.map(atch=> h('div', {

@@ -7,7 +7,7 @@ export default class Sender{
     applescript.execString(`
       tell application "Messages"
         set message to "${message}"
-        set conversation to buddy "${phone}" of service "SMS"
+        set conversation to a reference to text chat id chat_id
         send message to conversation
       end tell`, this.callback);
   }

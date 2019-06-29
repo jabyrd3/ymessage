@@ -11,6 +11,7 @@
   "dependencies": {
     "applescript": "^1.0.0",
     "better-sqlite3": "^5.4.0",
+    "grabity": "^1.0.5",
     "preact": "^8.4.2",
     "ws": "^7.0.1"
   },

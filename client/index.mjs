@@ -12,12 +12,12 @@ export default (initData, contacts) =>
   <body>
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
     <script type="text/javascript">
-      window.initData = {messages:${JSON.stringify(
-        Object.keys(initData)
-          .slice(0, 300)
-          .reduce((acc, k) => Object.assign({}, acc, {[k]: initData[k]}), {
-            length: Object.keys(initData).length
-          }), {})}, contacts: ${JSON.stringify(contacts)}};
+      window.initData = {
+        messages: ${JSON.stringify(
+          Object.keys(initData)
+            .slice(0, 300).map(k=>initData[k]))},
+        contacts: ${JSON.stringify(contacts)}
+      };
     </script>
     <script type="module" src="http://localhost:5000/client/app.js"></script>
   </body>
