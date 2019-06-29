@@ -24,6 +24,12 @@ class App extends Component {
       chats
     });
   }
+  scrollMessages(){
+    setTimeout(() => {
+      const messages = document.getElementById('messages');
+      messages.scrollTo(0, messages.scrollHeight)
+    }, 16);
+  }
   componentDidMount(){
     // todo: unfuck this
     this.setState({
@@ -51,10 +57,6 @@ class App extends Component {
         msgText: this.state.msgText
       });
     });
-    setTimeout(() => {
-      const messages = document.getElementById('messages');
-      messages.scrollTo(0, messages.scrollHeight)
-    }, 16)
   }
   computeChats(messages, messageKeys){
     const chats = messageKeys.reduce((acc, m, idx)=>{
@@ -72,7 +74,8 @@ class App extends Component {
                     activeChat: messages[m].chat_id
                   });
                   setTimeout(() => this.setState({chats: this.computeChats(this.state.messages, this.state.messageKeys)}), 0);
-                }},
+                  this.scrollMessages();
+               }},
                 h('div', {class: 'content-wrap'}, 
                   h('span', {class: 'users'}, contact && contact[0] ? `${contact[0].firstName || ''} ${contact[0].lastName || ''}` : 'hrm'),
                   h('span', {class: 'text'}, messages[m].text !== '\ufffc' ? messages[m].text : 'attachment'),
@@ -107,6 +110,7 @@ class App extends Component {
         })
       })
     });
+    this.scrollMessages();
   }
   submit(e){
     e.preventDefault();
