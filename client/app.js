@@ -6,7 +6,7 @@ class App extends Component {
     super(props);
     this.contacts = new Contacts(initData.contacts)
     window.contacts = this.contacts;
-    const messageKeys = Array.from({length: initData.messages.length});
+    const messageKeys = Array.from({length: initData.messages.length}).map((i, idx)=>idx);
     this.state = {
       messages: initData.messages,
       messageKeys,
@@ -17,6 +17,7 @@ class App extends Component {
     this.loadedImg = this.loadedImg.bind(this);
     this.submit = this.submit.bind(this);
     this.updateMsg = this.updateMsg.bind(this);
+    this.computeChats(initData.messages, this.state.messageKeys);
   }
   componentWillMount(){
     const chats = this.computeChats(initData.messages, this.state.messageKeys);
@@ -35,6 +36,7 @@ class App extends Component {
     this.setState({
       activeChat: Object.keys(this.state.chats)[0]
     });
+    console.log('cdm', this.state.activeChat, this.state.messages.length)
     const chats = this.computeChats(initData.messages, this.state.messageKeys);
     this.setState({
       chats
@@ -50,6 +52,7 @@ class App extends Component {
       const messages = JSON.parse(msgs.data);
       const messageKeys = Object.keys(messages);
       const chats = this.computeChats(messages, messageKeys);
+      console.log("presetstate")
       this.setState({
         messages,
         messageKeys,
