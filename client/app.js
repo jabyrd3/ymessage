@@ -33,8 +33,9 @@ class App extends Component {
   }
   componentDidMount(){
     // todo: unfuck this
+    console.log(this.state.chats)
     this.setState({
-      activeChat: Object.keys(this.state.chats)[0]
+      activeChat: Object.keys(this.state.chats).sort((a, b) => this.state.chats[a].date > this.state.chats[b].date ? -1 : 1)[0]
     });
     const chats = this.computeChats(initData.messages, this.state.messageKeys);
     this.setState({
