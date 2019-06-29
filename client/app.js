@@ -36,7 +36,6 @@ class App extends Component {
     this.setState({
       activeChat: Object.keys(this.state.chats)[0]
     });
-    console.log('cdm', this.state.activeChat, this.state.messages.length)
     const chats = this.computeChats(initData.messages, this.state.messageKeys);
     this.setState({
       chats
@@ -52,7 +51,6 @@ class App extends Component {
       const messages = JSON.parse(msgs.data);
       const messageKeys = Object.keys(messages);
       const chats = this.computeChats(messages, messageKeys);
-      console.log("presetstate")
       this.setState({
         messages,
         messageKeys,
