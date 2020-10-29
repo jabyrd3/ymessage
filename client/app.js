@@ -1,5 +1,5 @@
-import { h, render, Component } from 'http://localhost:5000/node_modules/preact/dist/preact.mjs';
-import Contacts from 'http://localhost:5000/contacts.mjs';
+import { h, render, Component } from 'http://totem.home:5000/node_modules/preact/dist/preact.mjs';
+import Contacts from 'http://totem.home:5000/contacts.mjs';
 
 class App extends Component {
   constructor(props){
@@ -41,7 +41,7 @@ class App extends Component {
     this.setState({
       chats
     });
-    const ws = new WebSocket('ws://localhost:8080');
+    const ws = new WebSocket('ws://totem.home:8080');
     this.ws = ws;
     this.ws.addEventListener('open', function (event) {
         ws.send(JSON.stringify({
@@ -148,7 +148,7 @@ class App extends Component {
         class:'img-wrap',
         style: `height: ${orientations[atch.filename] && orientations[atch.filename].h || undefined}px; width: ${orientations[atch.filename] && orientations[atch.filename].w || undefined}px`
       }, h('img', {
-        src: `http://localhost:3000/assets/${atch.filename}`,
+        src: `http://totem.home:3000/assets/${atch.filename}`,
         class: `orientation-${orientations[atch.filename] && orientations[atch.filename].o}`,
         importance: 'low',
         decoding: 'async',
