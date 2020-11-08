@@ -11,8 +11,10 @@
   "dependencies": {
     "applescript": "^1.0.0",
     "better-sqlite3": "^5.4.0",
+    "bufferutil": "^4.0.1",
     "grabity": "^1.0.5",
     "preact": "^8.4.2",
+    "utf-8-validate": "^5.0.2",
     "ws": "^7.0.1"
   },
   "optionalDependencies": {

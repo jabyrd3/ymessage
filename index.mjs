@@ -7,6 +7,7 @@ import fs from 'fs';
 import cp from 'child_process';
 import Sender from './sender.mjs';
 import config from './config.mjs';
+import {promisify} from 'util';
 
 const sender = new Sender((err, rtn) => {
   if(err){
@@ -18,6 +19,7 @@ const db = sqlite(`${config.home}/Library/Messages/chat.db`);
 const wss = new WebSocket.Server({ port: 8080 });
 const contacts = new Contacts(false, cp);
 const allContacts = contacts.all();
+console.log(allContacts)
 const port = 3000
 
 let sockets = [];
@@ -99,9 +101,17 @@ wss.on('connection', function connection(ws) {
   });
 });
 
-const server = http.createServer((request, response) => {
+const server = http.createServer(async (request, response) => {
   if(request.url.includes('assets')){
-    return response.end(fs.readFileSync(request.url.replace('~', config.home).split('assets/')[1]));
+    try{
+      const file = await promisify(fs.readFile)(request.url.replace('~', config.home).split('assets/')[1]);
+      return response.end(file);
+    }catch(e){
+      console.log(e)
+      response.statusCode = 404;
+      return response.end();
+    }
+
   }
   response.end(client(fullMessages.map(fm => Object.assign({}, fm, {
     attachments: attachments.filter(at => at.ROWID === fm.message_id)

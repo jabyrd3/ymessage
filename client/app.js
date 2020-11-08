@@ -121,7 +121,7 @@ class App extends Component {
     this.ws.send(JSON.stringify({
       type: 'imessage',
       msg: {
-        target: messages.find(m=>m.chat_id === activeChat).guid,
+        target: messages.find(m=>m.chat_id == activeChat).guid,
         message: msgText
       }
     }));
@@ -153,7 +153,7 @@ class App extends Component {
         importance: 'low',
         decoding: 'async',
         id: atch.filename,
-        onload: (img) => this.loadedImg(atch.filename)
+        // onload: (img) => this.loadedImg(atch.filename)
       }))).concat([h('span', {}, msg.text !== '\ufffc' ? msg.text : '')]) : h('span', {}, msg.text)))
     return (
       h('div', {class: 'app'}, 
