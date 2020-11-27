@@ -31,14 +31,14 @@ let fullMessages = db.prepare(`
       on handle.ROWID = message.handle_id 
    left join chat
       on chat."ROWID" = chat_message_join.chat_id
-   ORDER BY message.ROWID desc LIMIT 500 OFFSET 0;
+   ORDER BY message.ROWID desc LIMIT 300 OFFSET 0;
 `).all();
 let attachments = db.prepare(`SELECT attachment_id, message.ROWID, filename from message
   inner join message_attachment_join
   on message_attachment_join.message_id = message.ROWID
   inner join attachment
     on message_attachment_join.attachment_id = attachment.ROWID
-ORDER BY message.ROWID desc LIMIT 500 OFFSET 0;
+ORDER BY message.ROWID desc LIMIT 300 OFFSET 0;
 `).all();
 
 const updateClient = (msgs) => {
@@ -56,14 +56,14 @@ const poller = () => {
         on handle.ROWID = message.handle_id 
       left join chat
         on chat."ROWID" = chat_message_join.chat_id
-     ORDER BY message.ROWID desc LIMIT 500 OFFSET 0;
+     ORDER BY message.ROWID desc LIMIT 300 OFFSET 0;
   `).all();
   attachments = db.prepare(`SELECT attachment_id, message.ROWID, filename from message
     inner join message_attachment_join
     on message_attachment_join.message_id = message.ROWID
     inner join attachment
       on message_attachment_join.attachment_id = attachment.ROWID
-  ORDER BY message.ROWID desc LIMIT 500 OFFSET 0;
+  ORDER BY message.ROWID desc LIMIT 300 OFFSET 0;
   `).all();
   updateClient(fullMessages.map(fm => Object.assign({}, fm, {
     attachments: attachments.filter(at => at.ROWID === fm.message_id)

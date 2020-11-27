@@ -18,6 +18,9 @@ class App extends Component {
     this.submit = this.submit.bind(this);
     this.updateMsg = this.updateMsg.bind(this);
     this.computeChats(initData.messages, this.state.messageKeys);
+    document.onfocus = () => {
+      document.title = 'imessage';
+    }
   }
   componentWillMount(){
     const chats = this.computeChats(initData.messages, this.state.messageKeys);
@@ -52,6 +55,15 @@ class App extends Component {
       const messages = JSON.parse(msgs.data);
       const messageKeys = Object.keys(messages);
       const chats = this.computeChats(messages, messageKeys);
+      const newIds = messages.map(m=>m.message_id)
+      const oldIds = this.state.messages.map(m=>m.message_id);
+      const newMsgs = newIds.filter(ni=>!oldIds.includes(ni));
+      if (newMsgs.length > 0 ){
+        const newest = messages.find(msg=>msg.message_id = newMsgs[0]);
+        console.log('new message!', newMsgs, newest)
+        document.title = `(${newMsgs.length}) imessage`;
+      }
+      console.log('jabbo', this.state.messages, this.state.messageKeys, this.state.msgText)
       this.setState({
         messages,
         messageKeys,
@@ -156,7 +168,7 @@ class App extends Component {
         // onload: (img) => this.loadedImg(atch.filename)
       }))).concat([h('span', {}, msg.text !== '\ufffc' ? msg.text : '')]) : h('span', {}, msg.text)))
     return (
-      h('div', {class: 'app'}, 
+      h('div', {class: 'app', onClick: () => {document.title = 'imessage'}}, 
         h('div', {class: 'chats'}, Object.keys(chats)
             .sort((a, b)=> chats[a].date >= chats[b].date ? -1 : 1)
             .map(k => chats[k].component)),
