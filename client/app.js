@@ -108,20 +108,20 @@ class App extends Component {
     });
   }
   loadedImg(filename){
-    const that = this;
-    const img1 = document.getElementById(filename);
-    EXIF.getData(img1, function() {
-      const o = EXIF.getTag(this, 'Orientation');
-      that.setState({
-        orientations: Object.assign({}, that.state.orientations, {
-          [filename]: {
-            o,
-            w: img1.clientWidth,
-            h: img1.clientHeight,
-          }
-        })
-      })
-    });
+    // const that = this;
+    // const img1 = document.getElementById(filename);
+    // EXIF.getData(img1, function() {
+    //   const o = EXIF.getTag(this, 'Orientation');
+    //   that.setState({
+    //     orientations: Object.assign({}, that.state.orientations, {
+    //       [filename]: {
+    //         o,
+    //         w: img1.clientWidth,
+    //         h: img1.clientHeight,
+    //       }
+    //     })
+    //   })
+    // });
     this.scrollMessages();
   }
   submit(e){
@@ -162,7 +162,7 @@ class App extends Component {
         importance: 'low',
         decoding: 'async',
         id: atch.filename,
-        // onload: (img) => this.loadedImg(atch.filename)
+        onload: (img) => this.loadedImg(atch.filename)
       }))).concat([h('span', {}, msg.text !== '\ufffc' ? msg.text : '')]) : h('span', {}, msg.text)))
     return (
       h('div', {class: 'app', onClick: () => {document.title = 'imessage'}}, 
