@@ -36,7 +36,7 @@ class App extends Component {
   }
   componentDidMount(){
     // todo: unfuck this
-    console.log(this.state.chats)
+    // console.log(this.state.chats)
     this.setState({
       activeChat: Object.keys(this.state.chats).sort((a, b) => this.state.chats[a].date > this.state.chats[b].date ? -1 : 1)[0]
     });
@@ -60,15 +60,13 @@ class App extends Component {
       const newMsgs = newIds.filter(ni=>!oldIds.includes(ni));
       if (newMsgs.length > 0 ){
         const newest = messages.find(msg=>msg.message_id = newMsgs[0]);
-        console.log('new message!', newMsgs, newest)
+        // console.log('new message!', newMsgs, newest)
         document.title = `(${newMsgs.length}) imessage`;
       }
-      console.log('jabbo', this.state.messages, this.state.messageKeys, this.state.msgText)
       this.setState({
         messages,
         messageKeys,
-        chats,
-        msgText: this.state.msgText
+        chats
       });
     });
   }
@@ -129,7 +127,6 @@ class App extends Component {
   submit(e){
     e.preventDefault();
     const {activeChat, messages, msgText} = this.state;
-    // console.log(messages)
     this.ws.send(JSON.stringify({
       type: 'imessage',
       msg: {
@@ -143,7 +140,7 @@ class App extends Component {
   }
   updateMsg(msg){
     this.setState({
-      msgText: new String(msg.target.value)
+      msgText: msg.target.value
     });
   }
   render(){
@@ -179,7 +176,7 @@ class App extends Component {
             onSubmit: this.submit
           }, h('input', {
             value: this.state.msgText,
-            onKeyUp: this.updateMsg
+            onInput: this.updateMsg
           })))
         )
       );
