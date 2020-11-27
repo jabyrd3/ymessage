@@ -71,7 +71,7 @@ class App extends Component {
         return Object.assign({}, acc, {
           [messages[idx].chat_id]:
             {component: 
-              h('div', {class: `chat ${this.state.activeChat && messages[idx].chat_id.toString() === this.state.activeChat.toString() ? 'selected' : ''}`, onClick: () => {
+              h('div', {class: `chat ${this.state.activeChat && messages[idx].chat_id && messages[idx].chat_id.toString() === this.state.activeChat.toString() ? 'selected' : ''}`, onClick: () => {
                   this.setState({
                     activeChat: messages[idx].chat_id
                   });
