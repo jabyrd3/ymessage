@@ -1,6 +1,7 @@
 import { h, render, Component } from 'http://totem.home:5000/node_modules/preact/dist/preact.mjs';
 import Contacts from 'http://totem.home:5000/contacts.mjs';
-
+// import 'http://totem.home:5000/node_modules/preact/devtools/devtools.js';
+const urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
 class App extends Component {
   constructor(props){
     super(props);
@@ -11,18 +12,21 @@ class App extends Component {
       messages: initData.messages,
       messageKeys,
       orientations: {},
-      msgText: ''
+      msgText: '',
+      previews: {}
     };
     this.computeChats = this.computeChats.bind(this);
     this.loadedImg = this.loadedImg.bind(this);
     this.submit = this.submit.bind(this);
     this.updateMsg = this.updateMsg.bind(this);
+    console.log('computechats constructor');
     this.computeChats(initData.messages, this.state.messageKeys);
     document.onfocus = () => {
       document.title = 'imessage';
     }
   }
   componentWillMount(){
+    console.log('computechats cwm');
     const chats = this.computeChats(initData.messages, this.state.messageKeys);
     this.setState({
       chats
@@ -40,6 +44,7 @@ class App extends Component {
     this.setState({
       activeChat: Object.keys(this.state.chats).sort((a, b) => this.state.chats[a].date > this.state.chats[b].date ? -1 : 1)[0]
     });
+    console.log('computechats cdm');
     const chats = this.computeChats(initData.messages, this.state.messageKeys);
     this.setState({
       chats
@@ -53,11 +58,35 @@ class App extends Component {
     });
     this.ws.addEventListener('message', msgs => {
       const messages = JSON.parse(msgs.data);
+      if(messages.type && (messages.type === 'grabity' || messages.type === 'twitter')){
+        this.setState({
+          previews: Object.assign({}, this.state.previews, {
+            [messages.message_id]: messages.preview
+          })
+        });
+        return true;
+      }
+      // console.log('jabbo', messages.type)
+      console.log('jabbo messages', messages.type, messages.type && "fuck")
+      console.log('computechats eventlistener', messages, messages.type, messages.type && "fuck"); 
       const messageKeys = Object.keys(messages);
       const chats = this.computeChats(messages, messageKeys);
       const newIds = messages.map(m=>m.message_id)
       const oldIds = this.state.messages.map(m=>m.message_id);
       const newMsgs = newIds.filter(ni=>!oldIds.includes(ni));
+      const hasLinks = messages
+        .filter(m => m.text !== null)
+        .filter(m => m.text.includes('http') || m.text.includes('https'));
+      hasLinks.map(m=>{
+        if(!this.state.previews[m.message_id]) {
+          ws.send(JSON.stringify({
+            type: 'grabity',
+            message_id: m.message_id,
+            url: m.text.match(urlRegex)
+          }));
+        }
+      });
+      console.log('jabbo haslinks', hasLinks);
       if (newMsgs.length > 0 ){
         const newest = messages.find(msg=>msg.message_id = newMsgs[0]);
         // console.log('new message!', newMsgs, newest)
@@ -72,7 +101,7 @@ class App extends Component {
   }
   computeChats(messages, messageKeys){
     const chats = messageKeys.reduce((acc, m, idx)=>{
-      if(messages[idx].chat_id && Object.keys(acc).includes(messages[idx].chat_id.toString())) {
+      if(messages[idx] && messages[idx].chat_id && Object.keys(acc).includes(messages[idx].chat_id.toString())) {
         return acc;
       } else if(messages[idx].text){
         const contact = this.contacts.one(messages[idx].phone);
@@ -144,6 +173,7 @@ class App extends Component {
     });
   }
   render(){
+    console.log(this.state.previews);
     const {chats, messages, activeChat, messageKeys, orientations} = this.state;
     const msgComponents = messageKeys 
       .map(k => messages[k])
@@ -153,17 +183,28 @@ class App extends Component {
       .filter(m => m && m.chat_id == activeChat)
       .map(msg => h('div', {
         class: `${msg.is_from_me === 1 ? 'ours' : 'theirs'} message`
-      }, msg.attachments && msg.attachments.length > 0 ? msg.attachments.map(atch=> h('div', {
-        class:'img-wrap',
-        style: `height: ${orientations[atch.filename] && orientations[atch.filename].h || undefined}px; width: ${orientations[atch.filename] && orientations[atch.filename].w || undefined}px`
-      }, h('img', {
-        src: `http://totem.home:3000/assets/${atch.filename}`,
-        class: `orientation-${orientations[atch.filename] && orientations[atch.filename].o}`,
-        importance: 'low',
-        decoding: 'async',
-        id: atch.filename,
-        onload: (img) => this.loadedImg(atch.filename)
-      }))).concat([h('span', {}, msg.text !== '\ufffc' ? msg.text : '')]) : h('span', {}, msg.text)))
+      }, this.state.previews[msg.message_id] && this.state.previews[msg.message_id].type === 'twitter' ? 
+          // haspreview
+          h('div', {class: 'preview'}, h('img', {
+            class: 'img-wrap',
+            src: `http://totem.home:5000/${this.state.previews[msg.message_id].url}`}), h('a', {href:msg.text}, msg.text)) :
+          msg.attachments && msg.attachments.length > 0 ?
+            // attachment messages
+            msg.attachments.map(atch=> h('div', {
+              class:'img-wrap',
+              style: `height: ${orientations[atch.filename] && orientations[atch.filename].h || undefined}px; width: ${orientations[atch.filename] && orientations[atch.filename].w || undefined}px`
+            }, h('img', {
+              src: `http://totem.home:3000/assets/${atch.filename}`,
+              class: `orientation-${orientations[atch.filename] && orientations[atch.filename].o}`,
+              importance: 'low',
+              decoding: 'async',
+              id: atch.filename,
+              onload: (img) => this.loadedImg(atch.filename)
+            })))
+            // any text besides weird unicode from messages
+            .concat([h('span', {}, msg.text !== '\ufffc' ? msg.text : '')]) :
+            // normal messages
+            h('span', {}, msg.text)))
     return (
       h('div', {class: 'app', onClick: () => {document.title = 'imessage'}}, 
         h('div', {class: 'chats'}, Object.keys(chats)

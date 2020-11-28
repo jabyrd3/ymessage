@@ -8,7 +8,10 @@ import cp from 'child_process';
 import Sender from './sender.mjs';
 import config from './config.mjs';
 import {promisify} from 'util';
-
+import grabity from 'grabity';
+import twitSnap from './test-grabity.mjs';
+console.log(Object.keys(grabity));
+let previews = {};
 const sender = new Sender((err, rtn) => {
   if(err){
     return console.log(`sender failed with ${err}`)
@@ -81,10 +84,43 @@ wss.on('connection', function connection(ws) {
     // ws.send('something');
     console.log('open')
   });
-
-  ws.on('message', function incoming(data) {
+  ws.on('message', async data => {
     const msg = JSON.parse(data);
     switch(msg.type){
+      case 'grabity':
+        if(previews[msg.message_id]){
+          console.log('cachedsend', previews[msg.message_id]);
+          sockets.map(async s => s.send(JSON.stringify({
+            type: previews[msg.message_id].type,
+            message_id: msg.message_id,
+            preview: previews[msg.message_id]
+          })));
+        } else {
+          let preview;
+          try {
+            if(msg.url[0].includes('twitter')){
+              preview = await twitSnap(msg.url[0], msg.message_id, 0);
+              preview.type = 'twitter';
+            } else {
+              preview = await grabity.grab(msg.url[0]);
+              preview.type = 'grabity';
+            }
+          } catch(e){
+            console.log("failed to fetch", msg);
+            preview = {
+              type: 'grabity',
+              msg:'Not Available'
+            };
+          }
+          previews[msg.message_id] = preview;
+          console.log('realfetchd send uncache', preview)
+          sockets.map(async s => s.send(JSON.stringify({
+            message_id: msg.message_id,
+            type: preview.type,
+            preview
+          })));
+        }
+      break;
       case 'sms': 
         console.log('trigger sms with message', msg)
       break;
