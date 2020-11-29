@@ -183,14 +183,14 @@ class App extends Component {
       .filter(m => m && m.chat_id == activeChat)
       .map(msg => h('div', {
         class: `${msg.is_from_me === 1 ? 'ours' : 'theirs'} message`
-      }, this.state.previews[msg.message_id] && this.state.previews[msg.message_id].type === 'twitter' ? 
+      }, this.state.previews[msg.message_id] && this.state.previews[msg.message_id].type === 'twitter' && this.state.previews[msg.message_id].url ? 
           // haspreview
           h('div', {class: 'preview'}, h('img', {
             class: 'img-wrap',
             src: `http://totem.home:5000/${this.state.previews[msg.message_id].url}`}), h('a', {href:msg.text}, msg.text)) :
           msg.attachments && msg.attachments.length > 0 ?
             // attachment messages
-            msg.attachments.map(atch=> h('div', {
+            msg.attachments.filter(atch=>atch.filename).map(atch=> h('div', {
               class:'img-wrap',
               style: `height: ${orientations[atch.filename] && orientations[atch.filename].h || undefined}px; width: ${orientations[atch.filename] && orientations[atch.filename].w || undefined}px`
             }, h('img', {
@@ -204,7 +204,7 @@ class App extends Component {
             // any text besides weird unicode from messages
             .concat([h('span', {}, msg.text !== '\ufffc' ? msg.text : '')]) :
             // normal messages
-            h('span', {}, msg.text)))
+            h('span', {}, msg.text)));
     return (
       h('div', {class: 'app', onClick: () => {document.title = 'imessage'}}, 
         h('div', {class: 'chats'}, Object.keys(chats)

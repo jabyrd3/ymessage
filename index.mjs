@@ -10,7 +10,6 @@ import config from './config.mjs';
 import {promisify} from 'util';
 import grabity from 'grabity';
 import twitSnap from './test-grabity.mjs';
-console.log(Object.keys(grabity));
 let previews = {};
 const sender = new Sender((err, rtn) => {
   if(err){
