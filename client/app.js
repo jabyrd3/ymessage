@@ -1,6 +1,6 @@
-import { h, render, Component } from 'http://totem.home:5000/node_modules/preact/dist/preact.mjs';
-import Contacts from 'http://totem.home:5000/contacts.mjs';
-// import 'http://totem.home:5000/node_modules/preact/devtools/devtools.js';
+import { h, render, Component } from '/node_modules/preact/dist/preact.mjs';
+import Contacts from '/contacts.mjs';
+import config from '/config.mjs';
 const urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
 class App extends Component {
   constructor(props){
@@ -49,7 +49,7 @@ class App extends Component {
     this.setState({
       chats
     });
-    const ws = new WebSocket('ws://totem.home:8080');
+    const ws = new WebSocket(`ws://${config.hostname}:8080`);
     this.ws = ws;
     this.ws.addEventListener('open', function (event) {
         ws.send(JSON.stringify({
@@ -187,14 +187,14 @@ class App extends Component {
           // haspreview
           h('div', {class: 'preview'}, h('img', {
             class: 'img-wrap',
-            src: `http://totem.home:5000/${this.state.previews[msg.message_id].url}`}), h('a', {href:msg.text}, msg.text)) :
+            src: `/${this.state.previews[msg.message_id].url}`}), h('a', {href:msg.text}, msg.text)) :
           msg.attachments && msg.attachments.length > 0 ?
             // attachment messages
             msg.attachments.filter(atch=>atch.filename).map(atch=> h('div', {
               class:'img-wrap',
               style: `height: ${orientations[atch.filename] && orientations[atch.filename].h || undefined}px; width: ${orientations[atch.filename] && orientations[atch.filename].w || undefined}px`
             }, h('img', {
-              src: `http://totem.home:3000/assets/${atch.filename}`,
+              src: `/assets/${atch.filename}`,
               class: `orientation-${orientations[atch.filename] && orientations[atch.filename].o}`,
               importance: 'low',
               decoding: 'async',

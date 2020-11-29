@@ -8,7 +8,7 @@ export default (initData, contacts) =>
     <meta name="description" content="Demo project">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="http://totem.home:5000/client/chat.css" />
+    <link rel="stylesheet" href="/client/chat.css" />
   </head>
   <body>
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
@@ -20,7 +20,7 @@ export default (initData, contacts) =>
         contacts: ${JSON.stringify(contacts)}
       };
     </script>
-    <script type="module" src="http://totem.home:5000/client/app.js"></script>
+    <script type="module" src="/client/app.js"></script>
     <script type="text/js">/**
  * Minified by jsDelivr using UglifyJS v3.3.25.
  * Original file: /npm/exif-js@2.3.0/exif.js

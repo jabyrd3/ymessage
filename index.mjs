@@ -17,6 +17,7 @@ const sender = new Sender((err, rtn) => {
   };
   console.log(`sender succeeded returning: `, rtn)
 });
+// todo: sanitize inputs, securitize it all up, etc
 const db = sqlite(`${config.home}/Library/Messages/chat.db`);
 const wss = new WebSocket.Server({ port: 8080 });
 const contacts = new Contacts(false, cp);
@@ -137,6 +138,7 @@ wss.on('connection', function connection(ws) {
 });
 
 const server = http.createServer(async (request, response) => {
+  // todo: rig up micro server, DRY up
   if(request.url.includes('assets')){
     try{
       const file = await promisify(fs.readFile)(request.url.replace('~', config.home).split('assets/')[1]);
@@ -146,7 +148,43 @@ const server = http.createServer(async (request, response) => {
       response.statusCode = 404;
       return response.end();
     }
-
+  }
+  if(request.url.includes('cache')){
+    try{
+      // todo: dont be so lazy jackass
+      const file = await promisify(fs.readFile)(`./cache/${request.url.split('cache/')[1]}`);
+      return response.end(file);
+    }catch(e){
+      console.log(e)
+      response.statusCode = 404;
+      return response.end();
+    }
+  }
+  if(request.url.includes('node_modules')){
+    console.log(request.url);
+    try{
+      // todo: dont be so lazy jackass
+      console.log(`./node_modules/${request.url.split('node_modules/')[1]}`);
+      const file = await promisify(fs.readFile)(`./node_modules/${request.url.split('node_modules/')[1]}`);
+      response.setHeader('content-type', 'text/javascript');
+      return response.end(file);
+    }catch(e){
+      console.log(e)
+      response.statusCode = 404;
+      return response.end();
+    }
+  }
+  if(['.mjs', '.js', '.css'].some(pf=>request.url.includes(pf))){
+    try {
+      if(request.url.includes('js')){
+        response.setHeader('content-type', 'text/javascript');
+      }else{
+        response.setHeader('content-type', 'text/css');
+      }
+      return response.end(await promisify(fs.readFile)(`./${request.url}`));
+    } catch(e) {
+      console.log(e);
+    } 
   }
   response.end(client(fullMessages.map(fm => Object.assign({}, fm, {
     attachments: attachments.filter(at => at.ROWID === fm.message_id)
