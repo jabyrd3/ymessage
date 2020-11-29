@@ -7,7 +7,10 @@ import fs from 'fs';
 import cp from 'child_process';
 import Sender from './sender.mjs';
 import config from './config.mjs';
-
+import {promisify} from 'util';
+import grabity from 'grabity';
+import twitSnap from './test-grabity.mjs';
+let previews = {};
 const sender = new Sender((err, rtn) => {
   if(err){
     return console.log(`sender failed with ${err}`)
@@ -18,6 +21,7 @@ const db = sqlite(`${config.home}/Library/Messages/chat.db`);
 const wss = new WebSocket.Server({ port: 8080 });
 const contacts = new Contacts(false, cp);
 const allContacts = contacts.all();
+console.log(allContacts)
 const port = 3000
 
 let sockets = [];
@@ -29,14 +33,14 @@ let fullMessages = db.prepare(`
       on handle.ROWID = message.handle_id 
    left join chat
       on chat."ROWID" = chat_message_join.chat_id
-   ORDER BY message.ROWID desc LIMIT 500 OFFSET 0;
+   ORDER BY message.ROWID desc LIMIT 300 OFFSET 0;
 `).all();
 let attachments = db.prepare(`SELECT attachment_id, message.ROWID, filename from message
   inner join message_attachment_join
   on message_attachment_join.message_id = message.ROWID
   inner join attachment
     on message_attachment_join.attachment_id = attachment.ROWID
-ORDER BY message.ROWID desc LIMIT 500 OFFSET 0;
+ORDER BY message.ROWID desc LIMIT 300 OFFSET 0;
 `).all();
 
 const updateClient = (msgs) => {
@@ -54,14 +58,14 @@ const poller = () => {
         on handle.ROWID = message.handle_id 
       left join chat
         on chat."ROWID" = chat_message_join.chat_id
-     ORDER BY message.ROWID desc LIMIT 500 OFFSET 0;
+     ORDER BY message.ROWID desc LIMIT 300 OFFSET 0;
   `).all();
   attachments = db.prepare(`SELECT attachment_id, message.ROWID, filename from message
     inner join message_attachment_join
     on message_attachment_join.message_id = message.ROWID
     inner join attachment
       on message_attachment_join.attachment_id = attachment.ROWID
-  ORDER BY message.ROWID desc LIMIT 500 OFFSET 0;
+  ORDER BY message.ROWID desc LIMIT 300 OFFSET 0;
   `).all();
   updateClient(fullMessages.map(fm => Object.assign({}, fm, {
     attachments: attachments.filter(at => at.ROWID === fm.message_id)
@@ -79,10 +83,43 @@ wss.on('connection', function connection(ws) {
     // ws.send('something');
     console.log('open')
   });
-
-  ws.on('message', function incoming(data) {
+  ws.on('message', async data => {
     const msg = JSON.parse(data);
     switch(msg.type){
+      case 'grabity':
+        if(previews[msg.message_id]){
+          console.log('cachedsend', previews[msg.message_id]);
+          sockets.map(async s => s.send(JSON.stringify({
+            type: previews[msg.message_id].type,
+            message_id: msg.message_id,
+            preview: previews[msg.message_id]
+          })));
+        } else {
+          let preview;
+          try {
+            if(msg.url[0].includes('twitter')){
+              preview = await twitSnap(msg.url[0], msg.message_id, 0);
+              preview.type = 'twitter';
+            } else {
+              preview = await grabity.grab(msg.url[0]);
+              preview.type = 'grabity';
+            }
+          } catch(e){
+            console.log("failed to fetch", msg);
+            preview = {
+              type: 'grabity',
+              msg:'Not Available'
+            };
+          }
+          previews[msg.message_id] = preview;
+          console.log('realfetchd send uncache', preview)
+          sockets.map(async s => s.send(JSON.stringify({
+            message_id: msg.message_id,
+            type: preview.type,
+            preview
+          })));
+        }
+      break;
       case 'sms': 
         console.log('trigger sms with message', msg)
       break;
@@ -99,9 +136,17 @@ wss.on('connection', function connection(ws) {
   });
 });
 
-const server = http.createServer((request, response) => {
+const server = http.createServer(async (request, response) => {
   if(request.url.includes('assets')){
-    return response.end(fs.readFileSync(request.url.replace('~', config.home).split('assets/')[1]));
+    try{
+      const file = await promisify(fs.readFile)(request.url.replace('~', config.home).split('assets/')[1]);
+      return response.end(file);
+    }catch(e){
+      console.log(e)
+      response.statusCode = 404;
+      return response.end();
+    }
+
   }
   response.end(client(fullMessages.map(fm => Object.assign({}, fm, {
     attachments: attachments.filter(at => at.ROWID === fm.message_id)
