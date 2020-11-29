@@ -9,7 +9,7 @@ import Sender from './sender.mjs';
 import config from './config.mjs';
 import {promisify} from 'util';
 import grabity from 'grabity';
-import twitSnap from './test-grabity.mjs';
+import linkPreview from './linkPreview.mjs';
 let previews = {};
 const sender = new Sender((err, rtn) => {
   if(err){
@@ -99,7 +99,7 @@ wss.on('connection', function connection(ws) {
           let preview;
           try {
             if(msg.url[0].includes('twitter')){
-              preview = await twitSnap(msg.url[0], msg.message_id, 0);
+              preview = await linkPreview(msg.url[0], msg.message_id, 0);
               preview.type = 'twitter';
             } else {
               preview = await grabity.grab(msg.url[0]);
