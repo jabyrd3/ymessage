@@ -10,6 +10,7 @@ import config from './config.mjs';
 import {promisify} from 'util';
 import grabity from 'grabity';
 import linkPreview from './linkPreview.mjs';
+const read = promisify(fs.readFile);
 let previews = {};
 const sender = new Sender((err, rtn) => {
   if(err){
@@ -87,6 +88,9 @@ wss.on('connection', function connection(ws) {
   ws.on('message', async data => {
     const msg = JSON.parse(data);
     switch(msg.type){
+      case 'all':
+        updateClient(fullMessages);
+      break;
       case 'grabity':
         if(previews[msg.message_id]){
           console.log('cachedsend', previews[msg.message_id]);
@@ -141,7 +145,7 @@ const server = http.createServer(async (request, response) => {
   // todo: rig up micro server, DRY up
   if(request.url.includes('assets')){
     try{
-      const file = await promisify(fs.readFile)(request.url.replace('~', config.home).split('assets/')[1]);
+      const file = await read(request.url.replace('~', config.home).split('assets/')[1]);
       return response.end(file);
     }catch(e){
       console.log(e)
@@ -152,7 +156,7 @@ const server = http.createServer(async (request, response) => {
   if(request.url.includes('cache')){
     try{
       // todo: dont be so lazy jackass
-      const file = await promisify(fs.readFile)(`./cache/${request.url.split('cache/')[1]}`);
+      const file = await read(`./cache/${request.url.split('cache/')[1]}`);
       return response.end(file);
     }catch(e){
       console.log(e)
@@ -165,7 +169,7 @@ const server = http.createServer(async (request, response) => {
     try{
       // todo: dont be so lazy jackass
       console.log(`./node_modules/${request.url.split('node_modules/')[1]}`);
-      const file = await promisify(fs.readFile)(`./node_modules/${request.url.split('node_modules/')[1]}`);
+      const file = await read(`./node_modules/${request.url.split('node_modules/')[1]}`);
       response.setHeader('content-type', 'text/javascript');
       return response.end(file);
     }catch(e){
@@ -174,6 +178,16 @@ const server = http.createServer(async (request, response) => {
       return response.end();
     }
   }
+
+  // order matters here
+  if(config.clientVersion === 'twodothex'){
+    console.log(request);
+    if(request.url === '/'){
+      return response.end(await read(`./twodothex/public/index.html`));
+    }
+    return response.end(await read(`./twodothex/public/${request.url}`));
+  }
+
   if(['.mjs', '.js', '.css'].some(pf=>request.url.includes(pf))){
     try {
       if(request.url.includes('js')){
@@ -181,7 +195,7 @@ const server = http.createServer(async (request, response) => {
       }else{
         response.setHeader('content-type', 'text/css');
       }
-      return response.end(await promisify(fs.readFile)(`./${request.url}`));
+      return response.end(await read(`./${request.url}`));
     } catch(e) {
       console.log(e);
     } 

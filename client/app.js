@@ -13,7 +13,7 @@ class App extends Component {
       messageKeys,
       orientations: {},
       msgText: '',
-      previews: {}
+      previews: initData.previews || {}
     };
     this.computeChats = this.computeChats.bind(this);
     this.loadedImg = this.loadedImg.bind(this);

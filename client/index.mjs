@@ -1,4 +1,4 @@
-export default (initData, contacts) =>
+export default (initData, contacts, previews) =>
 `<!DOCTYPE html>
 <html>
   <head>
@@ -17,7 +17,8 @@ export default (initData, contacts) =>
         messages: ${JSON.stringify(
           Object.keys(initData)
             .slice(0, 300).map(k=>initData[k]))},
-        contacts: ${JSON.stringify(contacts)}
+        contacts: ${JSON.stringify(contacts)},
+        previews: ${JSON.stringify(previews)}
       };
     </script>
     <script type="module" src="/client/app.js"></script>
