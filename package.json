@@ -17,7 +17,7 @@
     "nightmare-screenshot-selector": "^1.0.2",
     "preact": "^10.5.7",
     "utf-8-validate": "^5.0.2",
-    "ws": "^7.0.1"
+    "ws": "^7.4.6"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.1",
